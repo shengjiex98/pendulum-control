@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pendulum Control Demo</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=JetBrains+Mono:wght@500&display=swap');
+
+      :root {
+        color-scheme: light;
+        --bg: #eef2f7;
+        --bg-accent: #dce6f5;
+        --panel: #ffffff;
+        --ink: #1f2a37;
+        --muted: #667085;
+        --grid: #e5e7eb;
+        --accent: #3b82f6;
+        --accent-soft: #c7d8fb;
+        --shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(1200px 800px at 20% 0%, #f7f9fc 0%, var(--bg) 40%, var(--bg-accent) 100%);
+        font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+        color: var(--ink);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 32px 20px 48px;
+      }
+
+      .app {
+        width: min(1100px, 100%);
+        background: var(--panel);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+        padding: 28px 28px 22px;
+      }
+
+      .title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+
+      .title h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+        gap: 26px;
+      }
+
+      .plot-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .plot-wrap {
+        position: relative;
+        background: #fbfcfe;
+        border: 1px solid #e8edf5;
+        border-radius: 16px;
+        padding: 12px;
+      }
+
+      canvas {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        display: block;
+      }
+
+      .legend {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: #ffffffcc;
+        border: 1px solid #d7dce6;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 13px;
+        backdrop-filter: blur(6px);
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 4px 0;
+      }
+
+      .legend-line {
+        width: 18px;
+        height: 2px;
+        border-radius: 999px;
+      }
+
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .slider-row {
+        display: grid;
+        grid-template-columns: 1fr 110px;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .slider-row label {
+        font-size: 15px;
+      }
+
+      .slider-row input[type="range"] {
+        width: 100%;
+        appearance: none;
+        height: 8px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        outline: none;
+      }
+
+      .slider-row input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 3px solid #f1f5f9;
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+      }
+
+      .value-pill {
+        font-family: "JetBrains Mono", "SFMono-Regular", monospace;
+        font-size: 14px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #f3f6fb;
+        text-align: right;
+        color: #1f2937;
+      }
+
+      .diagram {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid #e5eaf2;
+        background: #fff;
+      }
+
+      .disturbance {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 8px 4px 0;
+      }
+
+      .disturbance label {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .disturbance .value-pill {
+        width: fit-content;
+      }
+
+      .status {
+        font-size: 13px;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .status strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="title">
+        <h1>Pendulum Control Demo</h1>
+      </div>
+      <div class="layout">
+        <section class="plot-panel">
+          <div class="plot-wrap">
+            <canvas id="sim-canvas"></canvas>
+            <div class="legend">
+              <div class="legend-item"><span class="legend-line" style="background:#f59e0b"></span>Gravity</div>
+              <div class="legend-item"><span class="legend-line" style="background:#6b7280"></span>Drag torque</div>
+              <div class="legend-item"><span class="legend-line" style="background:#22c55e"></span>Controller torque</div>
+              <div class="legend-item"><span class="legend-line" style="background:#d946ef"></span>Disturbance torque</div>
+            </div>
+          </div>
+          <div class="disturbance">
+            <label for="disturbance">Disturbance (joystick X)</label>
+            <input id="disturbance" type="range" min="-1" max="1" step="0.01" value="0" />
+            <div class="value-pill" id="disturbance-value">0.00</div>
+          </div>
+        </section>
+        <section class="controls">
+          <div class="slider-row">
+            <label for="max-torque">Max Torque</label>
+            <div>
+              <input id="max-torque" type="range" min="0" max="30" step="5" value="10" />
+              <div class="value-pill" id="max-torque-value">10 Nm</div>
+            </div>
+          </div>
+          <div class="slider-row">
+            <label for="kp">Gain K_P</label>
+            <div>
+              <input id="kp" type="range" min="0" max="100" step="10" value="60" />
+              <div class="value-pill" id="kp-value">60</div>
+            </div>
+          </div>
+          <div class="slider-row">
+            <label for="kd">Gain K_D</label>
+            <div>
+              <input id="kd" type="range" min="0" max="20" step="2.5" value="5" />
+              <div class="value-pill" id="kd-value">5.0</div>
+            </div>
+          </div>
+          <div class="slider-row">
+            <label for="control-period">Control Period</label>
+            <div>
+              <input id="control-period" type="range" min="1" max="20" step="1" value="6" />
+              <div class="value-pill" id="control-period-value">6/60 s</div>
+            </div>
+          </div>
+          <img class="diagram" src="/feedback_control.png" alt="Feedback control diagram" />
+          <div class="status">
+            <span>Joystick</span>
+            <strong id="joystick-status">Disconnected</strong>
+          </div>
+          <div class="status">
+            <span>Axis X</span>
+            <strong id="joystick-value">0.00</strong>
+          </div>
+        </section>
+      </div>
+    </div>
+    <script type="module" src="/src/render.ts"></script>
+  </body>
+</html>
