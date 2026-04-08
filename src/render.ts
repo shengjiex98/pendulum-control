@@ -6,6 +6,7 @@ const $ = (id: string) => document.getElementById(id)!;
 
 const params = { ...DEFAULTS };
 const state = createState();
+let joystickSensitivity = 1;
 
 // Slider bindings: [inputId, valueId, paramKey, formatter]
 const sliders: [string, string, keyof typeof params, (v: number) => string][] = [
@@ -27,6 +28,15 @@ for (const [inputId, valueId, key, fmt] of sliders) {
   input.addEventListener("input", update);
   update();
 }
+
+const joystickSensitivityInput = $("joystick-sensitivity") as HTMLInputElement;
+const joystickSensitivityValue = $("joystick-sensitivity-value");
+const updateJoystickSensitivity = () => {
+  joystickSensitivity = Number(joystickSensitivityInput.value);
+  joystickSensitivityValue.textContent = `${joystickSensitivity.toFixed(2)}x`;
+};
+joystickSensitivityInput.addEventListener("input", updateJoystickSensitivity);
+updateJoystickSensitivity();
 
 // Canvas resize
 let viewWidth = 0, viewHeight = 0;
@@ -132,7 +142,7 @@ function pollGamepad() {
   const axis = pad.axes[0] ?? 0;
   joystickValue.textContent = axis.toFixed(2);
   if (Math.abs(axis) > 0.05) {
-    params.disturbance = clamp(axis, -1, 1);
+    params.disturbance = clamp(axis * joystickSensitivity, -1, 1);
     ($("disturbance") as HTMLInputElement).value = params.disturbance.toFixed(2);
     $("disturbance-value").textContent = params.disturbance.toFixed(2);
   }

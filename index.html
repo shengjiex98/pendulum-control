@@ -169,18 +169,30 @@
 
       .disturbance {
         display: grid;
-        grid-template-columns: 1fr;
-        gap: 6px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
         padding: 8px 4px 0;
       }
 
-      .disturbance label {
+      .disturbance-control {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .disturbance-control label {
         font-size: 14px;
         color: var(--muted);
       }
 
       .disturbance .value-pill {
         width: fit-content;
+      }
+
+      @media (max-width: 640px) {
+        .disturbance {
+          grid-template-columns: 1fr;
+        }
       }
 
       .status {
@@ -221,9 +233,16 @@
             </div>
           </div>
           <div class="disturbance">
-            <label for="disturbance">Disturbance (joystick X)</label>
-            <input id="disturbance" type="range" min="-1" max="1" step="0.01" value="0" />
-            <div class="value-pill" id="disturbance-value">0.00</div>
+            <div class="disturbance-control">
+              <label for="disturbance">Disturbance (joystick X)</label>
+              <input id="disturbance" type="range" min="-1" max="1" step="0.01" value="0" />
+              <div class="value-pill" id="disturbance-value">0.00</div>
+            </div>
+            <div class="disturbance-control">
+              <label for="joystick-sensitivity">Joystick Sensitivity</label>
+              <input id="joystick-sensitivity" type="range" min="0.5" max="2" step="0.01" value="1" />
+              <div class="value-pill" id="joystick-sensitivity-value">1.00x</div>
+            </div>
           </div>
         </section>
         <section class="controls">
