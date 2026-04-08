@@ -189,6 +189,29 @@
         width: fit-content;
       }
 
+      .range-bounds {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .range-bounds label {
+        display: grid;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .range-bounds input[type="number"] {
+        width: 100%;
+        border: 1px solid #d7e0ec;
+        border-radius: 10px;
+        padding: 8px 10px;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+      }
+
       @media (max-width: 640px) {
         .disturbance {
           grid-template-columns: 1fr;
@@ -242,6 +265,16 @@
               <label for="joystick-sensitivity">Joystick Sensitivity</label>
               <input id="joystick-sensitivity" type="range" min="0.5" max="2" step="0.01" value="1" />
               <div class="value-pill" id="joystick-sensitivity-value">1.00x</div>
+              <div class="range-bounds">
+                <label for="joystick-sensitivity-min">
+                  Min
+                  <input id="joystick-sensitivity-min" type="number" min="0.01" max="10" step="0.01" value="0.5" />
+                </label>
+                <label for="joystick-sensitivity-max">
+                  Max
+                  <input id="joystick-sensitivity-max" type="number" min="0.01" max="10" step="0.01" value="2" />
+                </label>
+              </div>
             </div>
           </div>
         </section>

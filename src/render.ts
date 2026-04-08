@@ -31,11 +31,41 @@ for (const [inputId, valueId, key, fmt] of sliders) {
 
 const joystickSensitivityInput = $("joystick-sensitivity") as HTMLInputElement;
 const joystickSensitivityValue = $("joystick-sensitivity-value");
+const joystickSensitivityMinInput = $("joystick-sensitivity-min") as HTMLInputElement;
+const joystickSensitivityMaxInput = $("joystick-sensitivity-max") as HTMLInputElement;
+
+function syncJoystickSensitivityBounds() {
+  let min = Number(joystickSensitivityMinInput.value);
+  let max = Number(joystickSensitivityMaxInput.value);
+
+  if (!Number.isFinite(min)) min = 0.5;
+  if (!Number.isFinite(max)) max = 2;
+  if (min >= max) {
+    if (document.activeElement === joystickSensitivityMinInput) {
+      max = min + 0.01;
+    } else {
+      min = max - 0.01;
+    }
+  }
+
+  min = Math.max(0.01, Number(min.toFixed(2)));
+  max = Math.max(min + 0.01, Number(max.toFixed(2)));
+
+  joystickSensitivityMinInput.value = min.toFixed(2);
+  joystickSensitivityMaxInput.value = max.toFixed(2);
+  joystickSensitivityInput.min = min.toFixed(2);
+  joystickSensitivityInput.max = max.toFixed(2);
+  joystickSensitivityInput.value = clamp(Number(joystickSensitivityInput.value), min, max).toFixed(2);
+}
+
 const updateJoystickSensitivity = () => {
+  syncJoystickSensitivityBounds();
   joystickSensitivity = Number(joystickSensitivityInput.value);
   joystickSensitivityValue.textContent = `${joystickSensitivity.toFixed(2)}x`;
 };
 joystickSensitivityInput.addEventListener("input", updateJoystickSensitivity);
+joystickSensitivityMinInput.addEventListener("input", updateJoystickSensitivity);
+joystickSensitivityMaxInput.addEventListener("input", updateJoystickSensitivity);
 updateJoystickSensitivity();
 
 // Canvas resize
